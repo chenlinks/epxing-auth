@@ -117,7 +117,7 @@ public class Oauth2AuthorizationServerConfig extends AuthorizationServerConfigur
                 // 配置刷新token的有效期
                 .refreshTokenValiditySeconds(REFRESH_TOKEN_TIMER)
                 // 配置redirect_uri,用于授权成功后的跳转
-                .redirectUris("http://localhost:5555/login")
+//                .redirectUris("http://localhost:5555/auth-server/auth/login")
                 // 自动授权配置
                 .autoApprove(true)
                 .resourceIds("auth-service")
