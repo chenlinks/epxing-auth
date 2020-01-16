@@ -80,7 +80,7 @@ public class DefaultAuthenticationSuccessHandler extends SavedRequestAwareAuthen
         }
 
         @SuppressWarnings("unchecked")
-        TokenRequest tokenRequest = new TokenRequest(Maps.newHashMap(), clientId, clientDetails.getScope(), "custom");
+        TokenRequest tokenRequest = new TokenRequest(Maps.newHashMap(), clientId, clientDetails.getScope(), "password");
 
         OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
 
