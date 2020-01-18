@@ -1,8 +1,16 @@
 package com.epxing.auth.config;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.epxing.auth.result.Payload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +28,11 @@ import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.sql.Struct;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +41,7 @@ import java.util.Map;
  * Spring Security认证 表单登录成功后的处理器
  */
 @Component("defaultAuthenticationSuccessHandler")
+@Slf4j
 public class DefaultAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultAuthenticationSuccessHandler.class);
@@ -55,18 +68,27 @@ public class DefaultAuthenticationSuccessHandler extends SavedRequestAwareAuthen
 
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Basic ")) {
-            // 进一步判断从请求参数里面获取
-            clientId = request.getParameter("clientId");
-            clientSecret = request.getParameter("clientSecret");
-            if (clientId == null || clientSecret == null) {
+
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            String[] clientIds = parameterMap.get("clientId");
+            String[] clientSecrets = parameterMap.get("clientSecret");
+
+            if (clientIds == null  || clientSecrets == null) {
                 throw new UnapprovedClientAuthenticationException("请求信息中无client信息");
             }
+
+            clientId = clientIds[0];
+            clientSecret = clientSecrets[0];
+
+
         } else {
+
             String[] tokens = extractAndDecodeHeader(header, request);
             assert tokens.length == 2;
 
             clientId = tokens[0];
             clientSecret = tokens[1];
+
         }
 
 
@@ -80,7 +102,7 @@ public class DefaultAuthenticationSuccessHandler extends SavedRequestAwareAuthen
         }
 
         @SuppressWarnings("unchecked")
-        TokenRequest tokenRequest = new TokenRequest(Maps.newHashMap(), clientId, clientDetails.getScope(), "password");
+        TokenRequest tokenRequest = new TokenRequest(Maps.newHashMap(), clientId, clientDetails.getScope(), "authorization_code");
 
         OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
 
